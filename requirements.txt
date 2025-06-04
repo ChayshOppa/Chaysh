@@ -4,8 +4,8 @@ setuptools>=65.5.1
 wheel>=0.38.0
 
 # Web framework and server
-gunicorn==21.2.0  # Production WSGI server
 Flask==3.0.2
+gunicorn==21.2.0  # Required for Render production server
 Werkzeug==3.0.1
 Jinja2==3.1.3
 click==8.1.7
