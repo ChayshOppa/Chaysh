@@ -110,5 +110,7 @@ def internal_server_error(e):
     return render_template('error.html', message='Internal server error'), 500
 
 if __name__ == '__main__':
-    # Run the app in debug mode
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    # Get port from environment variable or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    # Run the app
+    app.run(host='0.0.0.0', port=port) 
