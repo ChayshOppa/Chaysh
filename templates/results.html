@@ -1,90 +1,45 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Chaysh</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chaysh</h1>
+            <p>Search Results for "{{ query }}"</p>
+        </header>
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="mb-4">
-                <i class="fas fa-search"></i> Search Results for "{{ query }}"
-            </h2>
-            <form action="{{ url_for('search') }}" method="get" class="mb-4">
-                <div class="input-group">
-                    <input type="text" 
-                           name="q" 
-                           class="form-control" 
-                           placeholder="Search again..."
-                           value="{{ query }}"
-                           required>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
+        <main>
+            <form action="{{ url_for('search') }}" method="get" class="search-form">
+                <input type="text" name="q" value="{{ query }}" required>
+                <button type="submit">Search</button>
             </form>
-        </div>
-    </div>
 
-    {% if results %}
-        <!-- Statistics Section -->
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-chart-bar"></i> Search Statistics
-                        </h5>
-                        <div class="row text-center">
-                            <div class="col-md-6">
-                                <h6>Total Results</h6>
-                                <p class="h3">{{ stats.total_results }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Sources</h6>
-                                <p class="h3 text-primary">
-                                    {% set sources = results|map(attribute='source')|unique|list %}
-                                    {{ sources|join(', ') }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="results">
+                {% if results %}
+                    <p class="stats">Found {{ stats.total_results }} results</p>
+                    <ul class="result-list">
+                        {% for result in results %}
+                            <li class="result-item">
+                                <h3><a href="{{ url_for('assistant', query=result.title) }}">{{ result.title }}</a></h3>
+                                <p class="snippet">{{ result.snippet }}</p>
+                                <p class="source">Source: {{ result.source }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="no-results">No results found. Try a different search term.</p>
+                {% endif %}
             </div>
-        </div>
+        </main>
 
-        <!-- Results Section -->
-        <div class="row">
-            {% for result in results %}
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ result.title }}</h5>
-                            {% if result.snippet %}
-                                <p class="card-text">{{ result.snippet }}</p>
-                            {% endif %}
-                            <div class="btn-group">
-                                <a href="{{ result.link }}" 
-                                   class="btn btn-primary" 
-                                   target="_blank">
-                                    <i class="fas fa-external-link-alt"></i> View on {{ result.source }}
-                                </a>
-                                <a href="{{ url_for('assistant', query=result.title) }}" 
-                                   class="btn btn-warning">
-                                    <i class="fas fa-robot"></i> Ask AI
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> No results found for "{{ query }}"
-        </div>
-        <div class="text-center">
-            <a href="{{ url_for('home') }}" class="btn btn-primary">
-                <i class="fas fa-home"></i> Back to Search
-            </a>
-        </div>
-    {% endif %}
-</div>
-{% endblock %} 
+        <footer>
+            <p>&copy; 2024 Chaysh. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html> 

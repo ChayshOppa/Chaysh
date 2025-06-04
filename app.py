@@ -1,19 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from scrapers.unified_scraper import UnifiedScraper
+from engine.crawler import Crawler
+from engine.parser import Parser
+from engine.assistant import Assistant
 import logging
 import os
-import sys
-import json
-from datetime import datetime
+from dotenv import load_dotenv
 
-# Log environment information
-print("=== Runtime Environment ===")
-print("Python Version:", sys.version)
-print("Python Executable:", sys.executable)
-print("SYS PATH:", sys.path)
-print("ENV PATH:", os.environ.get("PATH"))
-print("VIRTUAL_ENV:", os.environ.get("VIRTUAL_ENV"))
-print("============================")
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -25,12 +19,16 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Required for flash messages
-scraper = UnifiedScraper()
+
+# Initialize components
+crawler = Crawler()
+parser = Parser()
+assistant = Assistant()
 
 @app.route('/')
 def home():
     """Render the home page."""
-    return render_template('home.html')
+    return render_template('index.html')
 
 @app.route('/search')
 def search():
@@ -44,8 +42,20 @@ def search():
     logger.info(f"Processing search query: {query}")
     
     try:
-        results = scraper.search(query)
-        logger.info(f"Found {len(results)} results")
+        # For now, return mock results
+        # TODO: Implement actual search functionality
+        results = [
+            {
+                'title': 'Sample Manual 1',
+                'snippet': 'This is a sample manual for testing purposes.',
+                'source': 'example.com'
+            },
+            {
+                'title': 'Sample Manual 2',
+                'snippet': 'Another sample manual for testing.',
+                'source': 'example.org'
+            }
+        ]
         
         return render_template(
             'results.html',
@@ -59,7 +69,7 @@ def search():
         return render_template('error.html', message=str(e))
 
 @app.route('/assistant')
-def assistant():
+def assistant_route():
     """Handle AI assistant queries."""
     query = request.args.get('query', '').strip()
     
@@ -69,46 +79,20 @@ def assistant():
     
     logger.info(f"Processing assistant query: {query}")
     
-    # For now, return a simple response with the query
-    # TODO: Implement AI assistant integration
-    response = {
-        'title': query,
-        'summary': f'Here\'s what I found about {query}. This is a placeholder response - AI integration coming soon.',
-        'tips': [
-            'This is a placeholder tip',
-            'AI-generated tips will be available soon'
-        ],
-        'warnings': [
-            'This is a placeholder warning',
-            'AI-generated warnings will be available soon'
-        ]
-    }
-    
-    return render_template('assistant.html', query=query, response=response)
-
-@app.route('/debug')
-def debug():
-    """Show scraper status and test results."""
     try:
-        # Get scraper status
-        scraper_status = scraper.get_status()
+        # For now, return a mock response
+        # TODO: Implement actual AI assistant functionality
+        response = {
+            'response': f'Here\'s what I found about {query}. This is a placeholder response - AI integration coming soon.',
+            'steps': [
+                'Step 1: This is a placeholder step',
+                'Step 2: AI-generated steps will be available soon'
+            ]
+        }
         
-        # Load test results if available
-        test_results = {}
-        try:
-            with open('unified_test_results.json', 'r') as f:
-                test_data = json.load(f)
-                test_results = test_data.get('queries', {})
-        except FileNotFoundError:
-            logger.warning("No test results file found")
-        
-        return render_template(
-            'debug.html',
-            scraper_status=scraper_status,
-            test_results=test_results
-        )
+        return render_template('assistant.html', query=query, response=response)
     except Exception as e:
-        logger.error(f"Error in debug page: {str(e)}", exc_info=True)
+        logger.error(f"Error in assistant: {str(e)}", exc_info=True)
         return render_template('error.html', message=str(e))
 
 @app.errorhandler(404)

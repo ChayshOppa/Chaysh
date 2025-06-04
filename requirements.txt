@@ -12,12 +12,16 @@ click==8.1.7
 itsdangerous==2.1.2
 MarkupSafe==2.1.5
 
-# Scraping and parsing
+# Web scraping and parsing
 requests==2.31.0
-requests-html==0.10.0
 beautifulsoup4==4.12.3
 lxml==5.1.0
-pyppeteer==1.0.2
+PyPDF2==3.0.1  # For PDF parsing
+playwright==1.41.2  # For JS-heavy sites
+
+# AI and search
+openai==1.12.0  # For AI assistant
+whoosh==2.7.4  # For lightweight search
 
 # Environment and utilities
 python-dotenv==1.0.1 

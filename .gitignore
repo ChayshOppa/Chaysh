@@ -37,4 +37,9 @@ ENV/
 
 # Local development
 .env
-.env.local 
+.env.local
+
+# Test results
+unified_test_results.json
+individual_test_results.json
+scraper_test.log 

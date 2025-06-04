@@ -1,79 +1,49 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Chaysh</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chaysh AI Assistant</h1>
+            <p>Helping you with "{{ query }}"</p>
+        </header>
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="mb-4">
-                <i class="fas fa-robot"></i> AI Assistant Response for "{{ query }}"
-            </h2>
-            <form action="{{ url_for('assistant') }}" method="get" class="mb-4">
-                <div class="input-group">
-                    <input type="text" 
-                           name="query" 
-                           class="form-control" 
-                           placeholder="Ask another question..."
-                           value="{{ query }}"
-                           required>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-robot"></i> Ask AI
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h3 class="card-title">{{ response.title }}</h3>
-                    <div class="card-text">
-                        {{ response.summary | safe | nl2br }}
+        <main>
+            <div class="assistant-response">
+                {% if response.error %}
+                    <div class="error">
+                        <p>{{ response.error }}</p>
                     </div>
-                </div>
+                {% else %}
+                    <div class="content">
+                        <h2>Summary</h2>
+                        <p>{{ response.response }}</p>
+
+                        {% if response.steps %}
+                            <h3>Step-by-Step Guide</h3>
+                            <ol class="steps">
+                                {% for step in response.steps %}
+                                    <li>{{ step }}</li>
+                                {% endfor %}
+                            </ol>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
 
-            {% if response.tips %}
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        <i class="fas fa-lightbulb text-warning"></i> Tips
-                    </h4>
-                    <ul class="list-unstyled">
-                        {% for tip in response.tips %}
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success"></i> {{ tip }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+            <div class="actions">
+                <a href="{{ url_for('home') }}" class="button">New Search</a>
             </div>
-            {% endif %}
+        </main>
 
-            {% if response.warnings %}
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        <i class="fas fa-exclamation-triangle text-warning"></i> Warnings
-                    </h4>
-                    <ul class="list-unstyled">
-                        {% for warning in response.warnings %}
-                        <li class="mb-2">
-                            <i class="fas fa-exclamation-circle text-warning"></i> {{ warning }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            {% endif %}
-        </div>
+        <footer>
+            <p>&copy; 2024 Chaysh. All rights reserved.</p>
+        </footer>
     </div>
-
-    <div class="text-center mt-4">
-        <a href="{{ url_for('home') }}" class="btn btn-primary">
-            <i class="fas fa-home"></i> Back to Search
-        </a>
-    </div>
-</div>
-{% endblock %} 
+</body>
+</html> 
