@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="mb-4">
+                <i class="fas fa-robot"></i> AI Assistant Response for "{{ query }}"
+            </h2>
+            <form action="{{ url_for('assistant') }}" method="get" class="mb-4">
+                <div class="input-group">
+                    <input type="text" 
+                           name="query" 
+                           class="form-control" 
+                           placeholder="Ask another question..."
+                           value="{{ query }}"
+                           required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-robot"></i> Ask AI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">{{ response.title }}</h3>
+                    <div class="card-text">
+                        {{ response.summary | safe | nl2br }}
+                    </div>
+                </div>
+            </div>
+
+            {% if response.tips %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="fas fa-lightbulb text-warning"></i> Tips
+                    </h4>
+                    <ul class="list-unstyled">
+                        {% for tip in response.tips %}
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i> {{ tip }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if response.warnings %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="fas fa-exclamation-triangle text-warning"></i> Warnings
+                    </h4>
+                    <ul class="list-unstyled">
+                        {% for warning in response.warnings %}
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-circle text-warning"></i> {{ warning }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('home') }}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Back to Search
+        </a>
+    </div>
+</div>
+{% endblock %} 

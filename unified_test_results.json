@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-06-04T09:19:16.017680",
+  "queries": {
+    "billy": {
+      "results": [],
+      "error": null
+    },
+    "canon": {
+      "results": [],
+      "error": null
+    },
+    "malm": {
+      "results": [],
+      "error": null
+    },
+    "sony": {
+      "results": [],
+      "error": null
+    },
+    "canon printer": {
+      "results": [],
+      "error": null
+    }
+  },
+  "status": {
+    "IKEA": {
+      "total_requests": 0,
+      "successful_requests": 0,
+      "failed_requests": 0,
+      "last_error": null,
+      "last_success": null,
+      "average_response_time": 0,
+      "results_found": 0
+    },
+    "Manualslib": {
+      "total_requests": 0,
+      "successful_requests": 0,
+      "failed_requests": 0,
+      "last_error": null,
+      "last_success": null,
+      "average_response_time": 0,
+      "results_found": 0
+    }
+  }
+}

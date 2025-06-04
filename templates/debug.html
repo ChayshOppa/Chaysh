@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="fas fa-bug"></i> Scraper Debug Dashboard
+    </h2>
+
+    <!-- Scraper Status Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Scraper Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for scraper_name, status in scraper_status.items() %}
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2">{{ scraper_name }}</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h6>Total Requests</h6>
+                                        <p class="h3">{{ status.total_requests }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h6>Successful</h6>
+                                        <p class="h3 text-success">{{ status.successful_requests }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h6>Failed</h6>
+                                        <p class="h3 text-danger">{{ status.failed_requests }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h6>Results Found</h6>
+                                        <p class="h3 text-primary">{{ status.results_found }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Last Success: {{ status.last_success or 'Never' }}<br>
+                                Last Error: {{ status.last_error or 'None' }}<br>
+                                Avg Response Time: {{ "%.2f"|format(status.average_response_time) }}s
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results Section -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-vial"></i> Test Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for query, results in test_results.items() %}
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2">Query: {{ query }}</h6>
+                        {% if results.error %}
+                        <div class="alert alert-danger">
+                            {{ results.error }}
+                        </div>
+                        {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Source</th>
+                                        <th>Link</th>
+                                        <th>Snippet</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results.results %}
+                                    <tr>
+                                        <td>{{ result.title }}</td>
+                                        <td>{{ result.source }}</td>
+                                        <td>
+                                            <a href="{{ result.link }}" target="_blank" class="text-primary">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        </td>
+                                        <td>{{ result.snippet }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
