@@ -14,4 +14,4 @@ mkdir -p data/index
 mkdir -p logs
 
 echo "Verifying installation"
-python -c "import fastapi; import uvicorn; import httpx; import beautifulsoup4; import whoosh" 
+python -c "import fastapi; import uvicorn; import httpx; import bs4; import whoosh" 
