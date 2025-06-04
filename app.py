@@ -110,7 +110,7 @@ def internal_server_error(e):
     return render_template('error.html', message='Internal server error'), 500
 
 if __name__ == '__main__':
-    # Get port from environment variable or default to 5000
+    # This block will only run when the script is executed directly
+    # In production, gunicorn will handle the server
     port = int(os.environ.get('PORT', 5000))
-    # Run the app
     app.run(host='0.0.0.0', port=port) 
