@@ -2,8 +2,18 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from scrapers.unified_scraper import UnifiedScraper
 import logging
 import os
+import sys
 import json
 from datetime import datetime
+
+# Log environment information
+print("=== Runtime Environment ===")
+print("Python Version:", sys.version)
+print("Python Executable:", sys.executable)
+print("SYS PATH:", sys.path)
+print("ENV PATH:", os.environ.get("PATH"))
+print("VIRTUAL_ENV:", os.environ.get("VIRTUAL_ENV"))
+print("============================")
 
 # Configure logging
 logging.basicConfig(

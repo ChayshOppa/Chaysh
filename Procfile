@@ -1,1 +1,1 @@
-web: echo "=== Runtime Environment ===" && python --version && echo "PATH: $PATH" && echo "PYTHONPATH: $PYTHONPATH" && echo "============================" && python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 --log-level debug 
+web: .venv/bin/python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 --log-level debug 
