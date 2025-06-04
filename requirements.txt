@@ -1,27 +1,22 @@
 # Core dependencies
-pip>=23.0.1
-setuptools>=65.5.1
-wheel>=0.38.0
-
-# Web framework and server
-Flask==3.0.2
-gunicorn==21.2.0  # Required for Render production server
-Werkzeug==3.0.1
-Jinja2==3.1.3
-click==8.1.7
-itsdangerous==2.1.2
-MarkupSafe==2.1.5
-
-# Web scraping and parsing
-requests==2.31.0
+fastapi==0.109.2
+uvicorn==0.27.1
+python-dotenv==1.0.1
+httpx==0.26.0
 beautifulsoup4==4.12.3
 lxml==5.1.0
-PyPDF2==3.0.1  # For PDF parsing
-playwright==1.41.2  # For JS-heavy sites
+pydantic==2.6.1
+python-multipart==0.0.9
 
 # AI and search
-openai==1.12.0  # For AI assistant
-whoosh==2.7.4  # For lightweight search
+openai==1.12.0  # For OpenRouter API compatibility
+whoosh==2.7.4  # For search indexing
 
-# Environment and utilities
-python-dotenv==1.0.1 
+# Testing
+pytest==8.0.0
+pytest-asyncio==0.23.5
+
+# Development
+black==24.1.1
+isort==5.13.2
+flake8==7.0.0 

@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: chaysh
+    env: python
+    buildCommand: |
+      python -m venv .venv
+      source .venv/bin/activate
+      pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: MODEL_NAME
+        value: gpt-4-mini
+      - key: LOG_LEVEL
+        value: INFO
+    healthCheckPath: /
+    autoDeploy: true 

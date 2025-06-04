@@ -1,35 +1,42 @@
 # Chaysh Manual AI
 
-Chaysh Manual AI is a web application that helps users find and understand product manuals using AI-powered search and assistance.
+Chaysh is an AI-powered search engine and assistant specialized in finding and explaining product manuals, tutorials, and help content.
 
 ## Features
 
-- Web crawling for product manuals
-- AI-powered search functionality
-- Intelligent parsing of manual content
-- AI assistant for answering questions about products
-- Modern, responsive web interface
+- 🔍 **Smart Search Engine**
+  - Automatically finds and indexes manual content
+  - Prioritizes official sources and high-quality content
+  - Clean, organized search results
+
+- 🤖 **AI Assistant**
+  - Powered by OpenRouter API (GPT-4-mini or LLaMA3)
+  - Provides step-by-step guidance
+  - Uses scraped content for context-aware responses
+
+## Tech Stack
+
+- **Backend**: FastAPI (Python)
+- **AI**: OpenRouter API
+- **Search**: Whoosh
+- **Web Scraping**: httpx + BeautifulSoup4
+- **Deployment**: Render
 
 ## Project Structure
 
 ```
 chaysh/
-├── app.py              # Main Flask application
-├── requirements.txt    # Python dependencies
-├── Procfile           # For Render deployment
-├── build.sh           # Build script for Render
-├── runtime.txt        # Python runtime version
-├── engine/            # Core functionality
-│   ├── crawler.py     # Web crawling module
-│   ├── parser.py      # Content parsing module
-│   └── assistant.py   # AI assistant module
-├── static/            # Static files
-│   ├── css/          # Stylesheets
-│   └── js/           # JavaScript files
-└── templates/         # HTML templates
-    ├── index.html    # Home page
-    ├── results.html  # Search results
-    └── assistant.html # AI assistant interface
+├── src/
+│   ├── core/
+│   │   ├── config.py     # Configuration and settings
+│   │   ├── assistant.py  # AI assistant implementation
+│   │   └── search.py     # Search engine implementation
+│   └── main.py          # FastAPI application
+├── data/
+│   └── index/           # Search index storage
+├── tests/               # Test files
+├── requirements.txt     # Python dependencies
+└── .env                # Environment variables
 ```
 
 ## Setup
@@ -54,17 +61,33 @@ chaysh/
 4. Set up environment variables:
    Create a `.env` file with:
    ```
-   OPENAI_API_KEY=your_api_key_here
+   OPENROUTER_API_KEY=your_api_key_here
+   MODEL_NAME=gpt-4-mini  # or llama-3-70b-instruct
+   LOG_LEVEL=INFO
    ```
 
 5. Run the development server:
    ```bash
-   python app.py
+   uvicorn src.main:app --reload
    ```
+
+## API Endpoints
+
+- `GET /`: Root endpoint
+- `GET /search?query=...`: Search for manual content
+- `GET /assistant?query=...&context_url=...`: Get AI assistant response
+- `POST /crawl?url=...`: Crawl and index a URL
+
+## Development
+
+- Run tests: `pytest`
+- Format code: `black src/`
+- Sort imports: `isort src/`
+- Lint code: `flake8 src/`
 
 ## Deployment
 
-The application is configured for deployment on Render. The `build.sh` script and `Procfile` handle the deployment process automatically.
+The application is configured for deployment on Render. The build process is automated through Render's build system.
 
 ## Contributing
 
