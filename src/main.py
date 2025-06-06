@@ -202,9 +202,16 @@ async def chat(message: ChatMessage):
             message.message,
             context=message.context
         )
+        if 'error' in response:
+            return {
+                "success": False,
+                "error": response['error'],
+                "response": response['response']
+            }
         return {
             "success": True,
-            "response": response
+            "response": response['response'],
+            "steps": response.get('steps', [])
         }
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}", exc_info=True)
