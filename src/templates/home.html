@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl w-full mt-2">
+    <h2 id="mainHeading" class="text-center text-xl font-semibold mb-1">Find product manuals and get AI-powered assistance</h2>
+    <p id="mainDesc" class="text-center text-gray-400 mb-2 text-sm">Type a product name, model, or question below. Chaysh will search and answer in your chosen language.</p>
+    <div class="relative mb-4">
+        <input type="text" 
+               id="searchInput"
+               class="w-full px-4 py-3 rounded-lg search-input focus:outline-none focus:ring-2 focus:ring-accent-color"
+               placeholder="Search for product manuals...">
+        <button id="searchBtn" onclick="performSearch()"
+                class="absolute right-2 top-2 btn-primary px-4 py-2 rounded-lg bg-accent-color text-primary-color font-bold shadow-md">
+            Search
+        </button>
+    </div>
+    <div id="results" class="space-y-4">
+        <!-- Results will be inserted here -->
+    </div>
+    <div id="loading" class="hidden text-center mt-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-accent-color border-t-transparent"></div>
+    </div>
+</div>
+<script>
+    let lastPrompts = [];
+    // Language UI translations
+    const uiTranslations = {
+        en: {
+            mainHeading: 'Find product manuals and get AI-powered assistance',
+            mainDesc: 'Type a product name, model, or question below. Chaysh will search and answer in your chosen language.',
+            searchPlaceholder: 'Search for product manuals...',
+            searchBtn: 'Search',
+        },
+        pl: {
+            mainHeading: 'Znajdź instrukcje obsługi i uzyskaj pomoc AI',
+            mainDesc: 'Wpisz nazwę produktu, model lub pytanie poniżej. Chaysh wyszuka i odpowie w wybranym języku.',
+            searchPlaceholder: 'Wyszukaj instrukcje obsługi...',
+            searchBtn: 'Szukaj',
+        }
+    };
+    const suggestionsLabel = {
+        en: "Suggestions",
+        pl: "Obczajki"
+    };
+    const sourceLabel = {
+        en: "Source:",
+        pl: "Źródło:"
+    };
+    const noSourceLabel = {
+        en: "No source",
+        pl: "Brak źródła"
+    };
+    function setUILanguage(lang) {
+        document.getElementById('mainHeading').textContent = uiTranslations[lang].mainHeading;
+        document.getElementById('mainDesc').textContent = uiTranslations[lang].mainDesc;
+        document.getElementById('searchInput').placeholder = uiTranslations[lang].searchPlaceholder;
+        document.getElementById('searchBtn').textContent = uiTranslations[lang].searchBtn;
+    }
+    // Theme-aware styling for search bar and results
+    function updateThemeUI() {
+        const isDark = document.body.classList.contains('bg-gray-900');
+        const searchInput = document.getElementById('searchInput');
+        if (isDark) {
+            searchInput.className = 'w-full px-4 py-3 rounded-lg search-input focus:outline-none focus:ring-2 focus:ring-accent-color text-gray-100 bg-gray-800 border border-gray-700';
+        } else {
+            searchInput.className = 'w-full px-4 py-3 rounded-lg search-input focus:outline-none focus:ring-2 focus:ring-accent-color text-gray-900 bg-gray-200 border border-gray-400';
+        }
+        // Update result cards
+        document.querySelectorAll('.result-card').forEach(card => {
+            if (isDark) {
+                card.className = 'result-card p-4 rounded-lg shadow-lg bg-gray-800 text-gray-100 border border-gray-700';
+            } else {
+                card.className = 'result-card p-4 rounded-lg shadow-lg bg-gray-100 text-gray-900 border border-gray-300';
+            }
+        });
+        // Update suggestions text color
+        document.querySelectorAll('.result-card ul').forEach(ul => {
+            if (isDark) {
+                ul.className = 'list-disc list-inside text-gray-200';
+            } else {
+                ul.className = 'list-disc list-inside text-gray-800';
+            }
+        });
+    }
+    // On page load, set UI language and theme
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const userLang = getCookie('language') || 'en';
+    setUILanguage(userLang);
+    updateThemeUI();
+
+    // Listen for theme toggle (from base.html)
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', function() {
+                setTimeout(updateThemeUI, 10); // slight delay to allow class toggle
+            });
+        }
+    });
+
+    async function performSearch(suggestion = null) {
+        const searchInput = document.getElementById('searchInput');
+        if (suggestion) {
+            searchInput.value = suggestion;
+            return; // Only fill, do not search
+        }
+        const query = searchInput.value;
+        if (!query) return;
+        lastPrompts.push(query);
+        if (lastPrompts.length > 3) lastPrompts = lastPrompts.slice(-3);
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('results').innerHTML = '';
+        try {
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Language': userLang,
+                },
+                body: JSON.stringify({ query, context: lastPrompts.slice(0, -1), language: userLang }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                displayResults(data.results);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            document.getElementById('loading').classList.add('hidden');
+        }
+    }
+    function displayResults(results) {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+        results.forEach(result => {
+            const card = document.createElement('div');
+            card.className = 'result-card p-4 rounded-lg shadow-lg'; // theme will be set by updateThemeUI
+            const descriptionHtml = (result.description || ['No description.'])
+                .map(desc => `<p class=\"mb-2\">${desc}</p>`)
+                .join('');
+            // Source rendering
+            let sourceHtml = '';
+            if (result.source_info && result.source_info.startsWith('http')) {
+                sourceHtml = `<span class=\"font-semibold\">${sourceLabel[userLang]}</span> <a href=\"${result.source_info}\" target=\"_blank\" class=\"underline text-accent-color\">${result.source_info}</a>`;
+            } else if (result.source_info && result.source_info !== 'N/A') {
+                sourceHtml = `<span class=\"font-semibold\">${sourceLabel[userLang]}</span> ${result.source_info}`;
+            } else {
+                sourceHtml = `<span class=\"font-semibold\">${sourceLabel[userLang]}</span> ${noSourceLabel[userLang]}`;
+            }
+            let suggestionsHtml = '';
+            if (result.suggestions && result.suggestions.length > 0) {
+                // Render static suggestions (first 4) as links to static pages, 5th as AI suggestion
+                suggestionsHtml = `
+                    <div class=\"mt-4\">
+                        <h4 class=\"font-semibold mb-1\">${suggestionsLabel[userLang]}</h4>
+                        <ul class=\"list-disc list-inside\">
+                            ${result.suggestions.slice(0, 4).map(s => `<li><a href=\"/${s.category}.html?keyword=${encodeURIComponent(document.getElementById('searchInput').value)}\" class=\"text-accent-color hover:underline\">${s.text}</a></li>`).join('')}
+                            <li><a href=\"#\" class=\"text-accent-color hover:underline\" onclick=\"fillSuggestion('${result.suggestions[4].text.replace(/'/g, "\\'")}')\">${result.suggestions[4].text}</a></li>
+                        </ul>
+                    </div>
+                `;
+            }
+            let actionsHtml = '';
+            if (result.actions && result.actions.length > 0) {
+                actionsHtml = `
+                    <div class=\"flex space-x-4 mt-4\">
+                        ${result.actions.map(action => `
+                            <button onclick=\"startChat('${action.query}')\"
+                                    class=\"btn-primary px-4 py-2 rounded-lg\">
+                                ${action.label || 'Ask AI Assistant'}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            card.innerHTML = `
+                <h3 class=\"text-xl font-semibold mb-2\">${result.name || 'No name'}</h3>
+                <div class=\"mb-2\">${descriptionHtml}</div>
+                <p class=\"text-gray-400 mb-2\">${sourceHtml}</p>
+                ${suggestionsHtml}
+                ${actionsHtml}
+            `;
+            resultsDiv.appendChild(card);
+        });
+        updateThemeUI(); // update theme for new results
+    }
+    function fillSuggestion(suggestion) {
+        performSearch(suggestion); // Only fills, doesn't search
+    }
+    async function startChat(query) {
+        // Implement chat interface
+        console.log('Starting chat for:', query);
+    }
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+</script>
+{% endblock %} 

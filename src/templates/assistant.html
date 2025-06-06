@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl w-full mt-8 flex flex-col gap-4">
+    <h2 class="text-center text-xl font-semibold mb-2">Chaysh AI Chat Assistant</h2>
+    <div id="chatBox" class="bg-gray-800 dark:bg-gray-100 dark:text-gray-900 rounded-lg p-4 h-96 overflow-y-auto mb-4 shadow-inner"></div>
+    <form id="chatForm" class="flex gap-2">
+        <input type="text" id="chatInput" class="flex-1 px-4 py-2 rounded-lg bg-gray-700 dark:bg-gray-200 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-color" placeholder="Type your message..." autocomplete="off">
+        <button type="submit" class="btn-primary px-4 py-2 rounded-lg">Send</button>
+    </form>
+</div>
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (!message) return;
+        appendMessage('You', message);
+        chatInput.value = '';
+        chatInput.focus();
+        // Send to backend (placeholder)
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const data = await response.json();
+        if (data.success) {
+            appendMessage('Chaysh', data.response);
+        } else {
+            appendMessage('Chaysh', 'Sorry, something went wrong.');
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+    function appendMessage(sender, text) {
+        const msg = document.createElement('div');
+        msg.className = 'mb-2';
+        msg.innerHTML = `<span class="font-bold">${sender}:</span> <span>${text}</span>`;
+        chatBox.appendChild(msg);
+    }
+</script>
+{% endblock %} 

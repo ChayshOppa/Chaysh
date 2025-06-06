@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaysh</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2d3748;
+            --accent-color: #d4af37;
+        }
+        body {
+            background-color: var(--primary-color);
+            color: #e2e8f0;
+        }
+        .logo-placeholder {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 2rem;
+            color: var(--primary-color);
+            transition: box-shadow 0.2s;
+        }
+        .logo-placeholder:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .dropdown-menu {
+            min-width: 160px;
+            background: #23272f;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 0.5rem 0;
+        }
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #e2e8f0;
+        }
+        .dropdown-item:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-900 text-gray-100">
+    <!-- Minimal header: only menu icon in top-right -->
+    <header class="w-full flex justify-end px-4 py-3 relative">
+        <nav class="relative">
+            <button id="menuBtn" class="focus:outline-none">
+                <svg id="menuIcon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <div id="dropdownMenu" class="dropdown-menu absolute right-0 mt-2 hidden z-10">
+                <div class="dropdown-item flex items-center justify-between">
+                    <span id="langLabel">Language</span>
+                    <select id="langSelect" class="ml-2 bg-gray-700 text-gray-100 rounded px-2 py-1">
+                        <option value="en">English</option>
+                        <option value="pl">Polski</option>
+                    </select>
+                </div>
+                <div class="dropdown-item flex items-center justify-between">
+                    <span id="themeLabel">Theme</span>
+                    <button id="themeToggle" class="ml-2">
+                        <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.66 6.66l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="dropdown-item"><a id="chatAssistantLink" href="#" class="block w-full">AI Chat Assistant</a></div>
+                <div class="dropdown-item"><a id="termsLink" href="#" class="block w-full">Terms & Conditions</a></div>
+            </div>
+        </nav>
+    </header>
+    <!-- Centered logo above main content -->
+    <div class="flex flex-col items-center mt-4 mb-2">
+        <a href="/" title="Go to Home">
+            <div class="logo-placeholder mb-2">C</div>
+        </a>
+    </div>
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dropdown menu logic (robust version)
+        document.getElementById('menuBtn').onclick = function(e) {
+            e.stopPropagation();
+            document.getElementById('dropdownMenu').classList.toggle('hidden');
+        };
+        document.body.onclick = function(e) {
+            if (!document.getElementById('dropdownMenu').classList.contains('hidden')) {
+                document.getElementById('dropdownMenu').classList.add('hidden');
+            }
+        };
+        document.getElementById('dropdownMenu').onclick = function(e) {
+            e.stopPropagation();
+        };
+        // Theme toggle logic (placeholder)
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('bg-gray-900');
+            document.body.classList.toggle('bg-gray-100');
+            document.body.classList.toggle('text-gray-900');
+            document.body.classList.toggle('text-gray-100');
+        });
+
+        // Language switching logic
+        const langSelect = document.getElementById('langSelect');
+        const langLabel = document.getElementById('langLabel');
+        const themeLabel = document.getElementById('themeLabel');
+        const chatAssistantLink = document.getElementById('chatAssistantLink');
+        const termsLink = document.getElementById('termsLink');
+
+        const translations = {
+            en: {
+                langLabel: 'Language',
+                themeLabel: 'Theme',
+                chatAssistant: 'AI Chat Assistant',
+                terms: 'Terms & Conditions',
+            },
+            pl: {
+                langLabel: 'Język',
+                themeLabel: 'Motyw',
+                chatAssistant: 'Asystent AI',
+                terms: 'Regulamin',
+            }
+        };
+
+        function setLanguage(lang) {
+            document.cookie = `language=${lang};path=/`;
+            langLabel.textContent = translations[lang].langLabel;
+            themeLabel.textContent = translations[lang].themeLabel;
+            chatAssistantLink.textContent = translations[lang].chatAssistant;
+            termsLink.textContent = translations[lang].terms;
+        }
+
+        langSelect.addEventListener('change', function() {
+            setLanguage(this.value);
+            location.reload(); // reload to update all text
+        });
+
+        // On page load, set language from cookie
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        const userLang = getCookie('language') || 'en';
+        langSelect.value = userLang;
+        setLanguage(userLang);
+    });
+    </script>
+</body>
+</html> 
