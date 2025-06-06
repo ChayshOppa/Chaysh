@@ -9,6 +9,9 @@ from urllib.parse import urljoin, urlparse
 import json
 import random
 import collections
+import os
+import httpx
+from .select_model import ModelSelector
 
 class ManualCrawler:
     def __init__(self):
@@ -17,54 +20,150 @@ class ManualCrawler:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         self.top_results = 5
-        self.OPENROUTER_API_KEY = "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"
+        self.OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+        if not self.OPENROUTER_API_KEY:
+            logging.error("OpenRouter API key not found in environment variables")
         self.OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
         self.search_engines = [
             "https://www.google.com/search?q=",
             "https://www.bing.com/search?q=",
             "https://search.yahoo.com/search?p="
         ]
+        self.ai_client = None
+        self.model_selector = None
 
     async def init_session(self):
         if not self.session:
             self.session = aiohttp.ClientSession(headers=self.headers)
+        if not self.ai_client:
+            self.ai_client = httpx.AsyncClient(headers=self.headers)
+        if not self.model_selector:
+            self.model_selector = ModelSelector(self.ai_client)
 
     async def close_session(self):
         if self.session:
             await self.session.close()
             self.session = None
+        if self.ai_client:
+            await self.ai_client.aclose()
+            self.ai_client = None
+        self.model_selector = None
 
-    async def ask_ai(self, prompt: str) -> str:
-        """Ask OpenRouter AI for help with understanding and processing."""
-        headers = {
-            "Authorization": f"Bearer {self.OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/yourusername/chaysh",
-            "X-Title": "Chaysh"
-        }
-        
-        payload = {
-            "model": "gpt-3.5-turbo",
-            "messages": [
-                {"role": "system", "content": "You are a helpful assistant that helps find and understand product information."},
-                {"role": "user", "content": prompt}
-            ]
-        }
-        
-        logging.info(f"Sending request to OpenRouter API: {payload}")
+    async def ask_ai(self, prompt: str, language: str = 'en') -> str:
+        """Ask the AI model a question using OpenRouter API."""
         try:
-            timeout = aiohttp.ClientTimeout(total=15)  # 15 seconds timeout
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.post(self.OPENROUTER_API_URL, headers=headers, json=payload) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        logging.info(f"OpenRouter API response: {data}")
-                        return data["choices"][0]["message"]["content"].strip()
-                    else:
-                        logging.error(f"OpenRouter API error: {response.status}")
-                        return ""
+            # Get API key from environment
+            api_key = os.getenv("OPENROUTER_API_KEY")
+            if not api_key:
+                logging.error("OpenRouter API key not found in environment variables")
+                return ""
+
+            # Language-specific instructions and box titles
+            lang_config = {
+                'en': {
+                    'instruction': "Answer in English.",
+                    'boxes': {
+                        'current_model': 'Current Model',
+                        'select_model': 'Select Model',
+                        'opinions': 'User Opinions',
+                        'manuals': 'Manuals & Tutorials'
+                    }
+                },
+                'pl': {
+                    'instruction': "Odpowiadaj wyłącznie po polsku.",
+                    'boxes': {
+                        'current_model': 'Aktualny Model',
+                        'select_model': 'Wybierz Model',
+                        'opinions': 'Opinie Użytkowników',
+                        'manuals': 'Instrukcje i Poradniki'
+                    }
+                }
+            }
+            
+            config = lang_config.get(language, lang_config['en'])
+            
+            # Create structured prompt
+            structured_prompt = f"""
+            {config['instruction']}
+            
+            Analyze the following query: "{prompt}"
+            
+            Please provide information in this exact format:
+            {{
+                "basic_info": "A brief overview (max 100 chars)",
+                "detailed_info": "What is this item? What information can be found about it? (max 150 chars)",
+                "product_info": "If it's a product, include pricing and opinions (max 150 chars)",
+                "summary": "A concise explanation of what we know about this item (max 300 chars total)",
+                "opinions": [
+                    {{
+                        "text": "A user opinion or review (max 100 chars)",
+                        "rating": "positive/negative/neutral"
+                    }}
+                ],
+                "manuals": [
+                    {{
+                        "title": "Manual or tutorial title",
+                        "type": "manual/tutorial/guide",
+                        "url": "placeholder_url"
+                    }}
+                ]
+            }}
+
+            Rules:
+            1. Keep all responses under the specified character limits
+            2. Focus on factual, verifiable information
+            3. If it's a product, include pricing and user opinions
+            4. Make the summary clear and easy to understand
+            5. Return ONLY valid JSON format
+            6. {config['instruction']}
+            """
+
+            # Prepare request
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://chaysh.com",
+                "X-Title": "Chaysh Manual Search"
+            }
+            
+            payload = {
+                "model": "openai/gpt-3.5-turbo",
+                "messages": [
+                    {"role": "system", "content": f"You are a helpful assistant that provides accurate and concise information. Always respond in valid JSON format. {config['instruction']}"},
+                    {"role": "user", "content": structured_prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 500
+            }
+
+            # Log request details
+            logging.info(f"Sending request to OpenRouter API: {url}")
+            logging.info(f"Request headers: {headers}")
+            logging.info(f"Request payload: {payload}")
+
+            # Make request
+            response = await self.ai_client.post(url, json=payload, headers=headers)
+                
+            # Log response
+            logging.info(f"OpenRouter API response status: {response.status_code}")
+            logging.info(f"OpenRouter API response: {response.text}")
+
+            if response.status_code == 200:
+                data = response.json()
+                if "choices" in data and len(data["choices"]) > 0:
+                    message = data["choices"][0]["message"]["content"]
+                    logging.info(f"AI response: {message}")
+                    return message
+                else:
+                    logging.error(f"Invalid response format from OpenRouter API: {data}")
+                    return ""
+            else:
+                logging.error(f"OpenRouter API error: {response.status_code} - {response.text}")
+                return ""
+
         except Exception as e:
-            logging.error(f"Error calling OpenRouter API: {str(e)}")
+            logging.error(f"Error calling OpenRouter API: {str(e)}", exc_info=True)
             return ""
 
     def is_relevant_title(self, title: str, query: str, relaxed=False) -> bool:
@@ -84,99 +183,153 @@ class ManualCrawler:
             context_text = ""
             if context and len(context) > 0:
                 context_text = f"User's recent queries: {context}\n"
-            is_specific = any(char.isdigit() for char in query) or len(query.split()) > 1
 
-            # Static suggestions with categories, English and Polish
-            static_suggestions_en = [
-                {"text": f"Not sure what is exact name of '{query}'?", "category": "model_search"},
-                {"text": f"Wondering what exactly '{query}' is?", "category": "manual"},
-                {"text": f"Having trouble with '{query}'? Some help would be needed.", "category": "help"},
-                {"text": f"Let's see what others think about '{query}'.", "category": "opinions"},
-            ]
-            static_suggestions_pl = [
-                {"text": f"Nie jesteś pewien dokładnej nazwy '{query}'?", "category": "model_search"},
-                {"text": f"Zastanawiasz się czym dokładnie jest '{query}'?", "category": "manual"},
-                {"text": f"Masz problem z '{query}'? Potrzebna pomoc.", "category": "help"},
-                {"text": f"Zobaczmy co inni myślą o '{query}'.", "category": "opinions"},
-            ]
-            static_suggestions = static_suggestions_pl if language == 'pl' else static_suggestions_en
-
-            # Shuffle static suggestions order for variety
-            random.shuffle(static_suggestions)
-
-            # System message for AI prompt
-            system_lang = "Odpowiadaj wyłącznie po polsku." if language == 'pl' else "Answer in English."
-
-            if is_specific:
-                answer_prompt = f"""
-                {system_lang}
-                {context_text}Give a 4-part answer for '{query}': 
-                (1) Name/description, 
-                (2) short opinion/summary, 
-                (3) price range, 
-                (4) 1 suggestion for more specific search (if relevant).
-                Respond ONLY with a JSON object: {{
-                    'name': string, 
-                    'description': [string, string, string], 
-                    'source_info': string, 
-                    'suggestions': [string], 
-                    'actions': [{{'type': 'chat', 'label': 'Chaysh Assistant', 'query': '{query}'}}]
-                }}
-                """
-                answer_response = await self.ask_ai(answer_prompt)
-                try:
-                    answer = self.extract_first_json(answer_response)
-                    required_fields = {
-                        'name': query,
-                        'description': ['No description.', '', ''],
-                        'source_info': 'AI-generated summary',
-                        'suggestions': [],
-                        'actions': [{'type': 'chat', 'label': 'Chaysh Assistant', 'query': query}]
+            # Language-specific configurations
+            lang_config = {
+                'en': {
+                    'suggestions': [
+                        {"text": f"Having trouble with '{query}'? Some help would be needed.", "category": "help"},
+                        {"text": f"Wondering what exactly '{query}' is?", "category": "manual"},
+                        {"text": f"Not sure what is exact name of '{query}'?", "category": "model_search"},
+                        {"text": f"Let's see what others think about '{query}'.", "category": "opinions"}
+                    ],
+                    'boxes': {
+                        'current_model': 'Current Model',
+                        'select_model': 'Select Model',
+                        'opinions': 'User Opinions',
+                        'manuals': 'Manuals & Tutorials'
                     }
-                    for k, v in required_fields.items():
-                        if k not in answer or not answer[k]:
-                            answer[k] = v
-                    ai_suggestion = answer['suggestions'][0] if answer['suggestions'] else ("Spróbuj wyszukać powiązany temat." if language == 'pl' else "Try searching for a related topic.")
-                    suggestions = static_suggestions + [{"text": ai_suggestion, "category": "ai"}]
-                    answer['suggestions'] = suggestions
-                    return [answer]
-                except Exception as e:
-                    logging.error(f"Error parsing answer: {str(e)} | Response: {answer_response}")
-            else:
-                two_part_prompt = f"""
-                {system_lang}
-                {context_text}What is '{query}'? Give a 2-part answer: (1) product description, (2) 1 suggestion for more specific search (if relevant). Respond ONLY with a JSON object: {{'name': string, 'description': [string], 'source_info': string, 'suggestions': [string], 'actions': [{{'type': 'chat', 'label': 'Chaysh Assistant', 'query': '{query}'}}]}}
-                """
-                two_part_response = await self.ask_ai(two_part_prompt)
-                try:
-                    answer = self.extract_first_json(two_part_response)
-                    required_fields = {
-                        'name': query,
-                        'description': ['No description.'],
-                        'source_info': 'AI-generated summary',
-                        'suggestions': [],
-                        'actions': [{'type': 'chat', 'label': 'Chaysh Assistant', 'query': query}]
+                },
+                'pl': {
+                    'suggestions': [
+                        {"text": f"Masz problem z '{query}'? Potrzebna pomoc.", "category": "help"},
+                        {"text": f"Zastanawiasz się czym dokładnie jest '{query}'?", "category": "manual"},
+                        {"text": f"Nie jesteś pewien dokładnej nazwy '{query}'?", "category": "model_search"},
+                        {"text": f"Zobaczmy co inni myślą o '{query}'.", "category": "opinions"}
+                    ],
+                    'boxes': {
+                        'current_model': 'Aktualny Model',
+                        'select_model': 'Wybierz Model',
+                        'opinions': 'Opinie Użytkowników',
+                        'manuals': 'Instrukcje i Poradniki'
                     }
-                    for k, v in required_fields.items():
-                        if k not in answer or not answer[k]:
-                            answer[k] = v
-                    ai_suggestion = answer['suggestions'][0] if answer['suggestions'] else ("Spróbuj wyszukać powiązany temat." if language == 'pl' else "Try searching for a related topic.")
-                    suggestions = static_suggestions + [{"text": ai_suggestion, "category": "ai"}]
-                    answer['suggestions'] = suggestions
-                    return [answer]
-                except Exception as e:
-                    logging.error(f"Error parsing 2-part answer: {str(e)} | Response: {two_part_response}")
+                }
+            }
+            
+            config = lang_config.get(language, lang_config['en'])
+            static_suggestions = config['suggestions']
+
+            # Get AI response with language parameter
+            answer_response = await self.ask_ai(query, language)
+            try:
+                answer = self.extract_first_json(answer_response)
+                if not answer:
+                    raise ValueError("Failed to extract JSON from AI response")
+                
+                # Get model variations
+                variations_data = await self.model_selector.get_model_variations(query)
+                
+                # Initialize action boxes
+                action_boxes = []
+                
+                # Box 1: Model Variations
+                if variations_data.get('is_specific'):
+                    action_boxes.append({
+                        'title': config['boxes']['current_model'],
+                        'type': 'info',
+                        'message': 'You are viewing a specific model' if language == 'en' else 'Przeglądasz konkretny model'
+                    })
+                else:
+                    # Convert variations into clickable actions
+                    variation_actions = []
+                    for variation in variations_data.get('variations', []):
+                        variation_actions.append({
+                            'type': 'search',
+                            'label': variation['name'],
+                            'query': variation['query']
+                        })
+                    
+                    action_boxes.append({
+                        'title': config['boxes']['select_model'],
+                        'type': 'variations',
+                        'variations': variations_data.get('variations', []),
+                        'actions': variation_actions
+                    })
+                
+                # Box 2: Opinions
+                opinions = answer.get('opinions', [])
+                if opinions:
+                    action_boxes.append({
+                        'title': config['boxes']['opinions'],
+                        'type': 'opinions',
+                        'opinions': opinions
+                    })
+                else:
+                    action_boxes.append({
+                        'title': config['boxes']['opinions'],
+                        'type': 'placeholder',
+                        'message': 'No opinions available yet' if language == 'en' else 'Brak dostępnych opinii'
+                    })
+                
+                # Box 3: Manuals/Tutorials
+                manuals = answer.get('manuals', [])
+                if manuals:
+                    action_boxes.append({
+                        'title': config['boxes']['manuals'],
+                        'type': 'manuals',
+                        'manuals': manuals
+                    })
+                else:
+                    action_boxes.append({
+                        'title': config['boxes']['manuals'],
+                        'type': 'placeholder',
+                        'message': 'No manuals available yet' if language == 'en' else 'Brak dostępnych instrukcji'
+                    })
+                
+                # Format the response according to our structure
+                formatted_response = {
+                    'name': query,
+                    'description': [
+                        answer.get('basic_info', ''),
+                        answer.get('detailed_info', ''),
+                        answer.get('product_info', '')
+                    ],
+                    'source_info': 'AI-generated information based on available data' if language == 'en' else 'Informacje wygenerowane przez AI na podstawie dostępnych danych',
+                    'action_boxes': action_boxes,
+                    'suggestions': static_suggestions,
+                    'actions': [{'type': 'chat', 'label': 'Chaysh Assistant', 'query': query}]
+                }
+                
+                # Clean up empty descriptions
+                formatted_response['description'] = [d for d in formatted_response['description'] if d]
+                
+                # Add summary if available
+                if 'summary' in answer and answer['summary']:
+                    formatted_response['description'].append(answer['summary'])
+                
+                logging.info(f"Formatted AI response: {formatted_response}")
+                return [formatted_response]
+                
+            except Exception as e:
+                logging.error(f"Error processing AI response: {str(e)}", exc_info=True)
+                return [{
+                    'name': query,
+                    'description': ['Unable to process the search request. Please try again.'] if language == 'en' else ['Nie można przetworzyć zapytania. Spróbuj ponownie.'],
+                    'source_info': 'Error processing request' if language == 'en' else 'Błąd przetwarzania zapytania',
+                    'action_boxes': [],
+                    'suggestions': static_suggestions,
+                    'actions': [{'type': 'chat', 'label': 'Chaysh Assistant', 'query': query}]
+                }]
+                
+        except Exception as e:
+            logging.error(f"Error in search_manuals: {str(e)}", exc_info=True)
             return [{
                 'name': query,
-                'description': [
-                    f"Sorry, '{query}' is too broad or ambiguous." if language != 'pl' else f"Przepraszamy, '{query}' jest zbyt ogólne lub niejasne.",
-                    "Try one of the suggestions below or specify a model/product." if language != 'pl' else "Spróbuj jednej z poniższych sugestii lub podaj model/produkt."
-                ],
-                'source_info': "No specific product found." if language != 'pl' else "Nie znaleziono konkretnego produktu.",
-                'suggestions': static_suggestions + [{"text": "Spróbuj wyszukać powiązany temat." if language == 'pl' else "Try searching for a related topic.", "category": "ai"}],
-                'actions': [
-                    {'type': 'chat', 'label': 'Chaysh Assistant', 'query': query}
-                ]
+                'description': ['An error occurred while processing your search.'] if language == 'en' else ['Wystąpił błąd podczas przetwarzania wyszukiwania.'],
+                'source_info': 'Error processing request' if language == 'en' else 'Błąd przetwarzania zapytania',
+                'action_boxes': [],
+                'suggestions': [],
+                'actions': [{'type': 'chat', 'label': 'Chaysh Assistant', 'query': query}]
             }]
         finally:
             await self.close_session()
@@ -282,29 +435,34 @@ class ManualCrawler:
         return None
 
     def extract_first_json(self, text: str) -> dict:
-        """
-        Extract the first valid JSON object from a string, even if extra text or code block is present.
-        """
+        """Extract the first valid JSON object from text."""
         try:
-            text = text.strip()
-            # Remove code block markers if present
-            if text.startswith('```'):
-                parts = text.split('```', 2)
-                if len(parts) > 1:
-                    text = parts[1]
-                # Remove 'json' or other language tag if present
-                if text.strip().lower().startswith('json'):
-                    text = text.strip()[4:].strip()
-            # Remove 'json' prefix if present (even outside code block)
-            if text.strip().lower().startswith('json'):
-                text = text.strip()[4:].strip()
-            # Find the first {...} block
-            match = re.search(r'\{[\s\S]*\}', text)
-            if match:
-                return json.loads(match.group(0))
-        except Exception as e:
-            logging.error(f"Error extracting JSON: {str(e)} | Raw: {text}")
-        return {}
+            # First try to parse the entire text as JSON
+            return json.loads(text)
+        except json.JSONDecodeError:
+            try:
+                # Look for JSON-like structure in the text
+                import re
+                json_pattern = r'\{[^{}]*\}'
+                matches = re.findall(json_pattern, text)
+                if matches:
+                    for match in matches:
+                        try:
+                            return json.loads(match)
+                        except json.JSONDecodeError:
+                            continue
+            except Exception as e:
+                logging.error(f"Error extracting JSON: {str(e)}")
+            
+            # If no valid JSON found, try to construct a basic response
+            logging.warning(f"No valid JSON found in response: {text}")
+            return {
+                "name": "Unknown",
+                "description": ["No valid description found in the response."],
+                "source_info": "AI response parsing failed",
+                "suggestions": [],
+                "actions": []
+            }
 
     async def aggregate_consensus(self, infos: List[Dict], query: str, top3: list, suggestions: list, all_titles: list) -> Optional[Dict]:
         """Use AI to generate a neutral consensus from 3 sources."""

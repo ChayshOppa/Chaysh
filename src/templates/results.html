@@ -42,7 +42,7 @@
 <script>
     function startChat(query) {
         // Implement chat interface navigation
-        window.location.href = '/assistant';
+        window.location.href = 'http://localhost:8000/assistant?q=' + encodeURIComponent(query);
     }
 </script>
 {% endblock %} 

@@ -49,6 +49,10 @@
         en: "No source",
         pl: "Brak źródła"
     };
+    const assistantLabel = {
+        en: "Ask",
+        pl: "Zapytaj"
+    };
     function setUILanguage(lang) {
         document.getElementById('mainHeading').textContent = uiTranslations[lang].mainHeading;
         document.getElementById('mainDesc').textContent = uiTranslations[lang].mainDesc;
@@ -68,8 +72,26 @@
         document.querySelectorAll('.result-card').forEach(card => {
             if (isDark) {
                 card.className = 'result-card p-4 rounded-lg shadow-lg bg-gray-800 text-gray-100 border border-gray-700';
+                // Update text colors for dark theme
+                card.querySelectorAll('p').forEach(p => {
+                    if (!p.classList.contains('text-gray-400')) {
+                        p.className = 'mb-2 text-gray-100';
+                    }
+                });
+                card.querySelectorAll('h3').forEach(h3 => {
+                    h3.className = 'text-xl font-semibold mb-2 text-gray-100';
+                });
             } else {
                 card.className = 'result-card p-4 rounded-lg shadow-lg bg-gray-100 text-gray-900 border border-gray-300';
+                // Update text colors for light theme
+                card.querySelectorAll('p').forEach(p => {
+                    if (!p.classList.contains('text-gray-400')) {
+                        p.className = 'mb-2 text-gray-900';
+                    }
+                });
+                card.querySelectorAll('h3').forEach(h3 => {
+                    h3.className = 'text-xl font-semibold mb-2 text-gray-900';
+                });
             }
         });
         // Update suggestions text color
@@ -81,13 +103,15 @@
             }
         });
     }
-    // On page load, set UI language and theme
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+    // Language utility
+    function getUserLang() {
+        return localStorage.getItem('chaysh_lang') || navigator.language.slice(0,2) || 'en';
     }
-    const userLang = getCookie('language') || 'en';
+    const userLang = getUserLang();
+    // Use userLang in all fetch requests:
+    // fetch('/api/search', { ... body: JSON.stringify({ ..., language: userLang }) ... })
+    // fetch('/api/assistant', { ... body: JSON.stringify({ ..., language: userLang }) ... })
+    // On page load, set all UI text from a translations object using userLang
     setUILanguage(userLang);
     updateThemeUI();
 
@@ -109,83 +133,137 @@
         }
         const query = searchInput.value;
         if (!query) return;
+        
+        console.log('Starting search for:', query);
         lastPrompts.push(query);
         if (lastPrompts.length > 3) lastPrompts = lastPrompts.slice(-3);
+        
         document.getElementById('loading').classList.remove('hidden');
         document.getElementById('results').innerHTML = '';
+        
         try {
+            console.log('Sending search request...');
             const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Language': userLang,
                 },
-                body: JSON.stringify({ query, context: lastPrompts.slice(0, -1), language: userLang }),
+                body: JSON.stringify({ 
+                    query, 
+                    context: lastPrompts.slice(0, -1), 
+                    language: userLang 
+                }),
             });
+            
+            console.log('Response status:', response.status);
             const data = await response.json();
+            console.log('Response data:', data);
+            
             if (data.success) {
                 displayResults(data.results);
+            } else {
+                console.error('Search failed:', data);
+                document.getElementById('results').innerHTML = `
+                    <div class="text-center text-red-500">
+                        Search failed. Please try again.
+                    </div>
+                `;
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Search error:', error);
+            document.getElementById('results').innerHTML = `
+                <div class="text-center text-red-500">
+                    An error occurred. Please try again.
+                </div>
+            `;
         } finally {
             document.getElementById('loading').classList.add('hidden');
         }
     }
     function displayResults(results) {
+        console.log('Displaying results:', JSON.stringify(results, null, 2));
         const resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '';
+        
         results.forEach(result => {
+            console.log('Processing result:', result);
             const card = document.createElement('div');
             card.className = 'result-card p-4 rounded-lg shadow-lg'; // theme will be set by updateThemeUI
-            const descriptionHtml = (result.description || ['No description.'])
-                .map(desc => `<p class=\"mb-2\">${desc}</p>`)
-                .join('');
+            
+            // Ensure description is an array and filter out empty descriptions
+            const descriptions = Array.isArray(result.description) 
+                ? result.description.filter(desc => desc && desc !== 'No description.')
+                : [result.description || 'No description.'];
+            console.log('Descriptions:', descriptions);
+            
+            const descriptionHtml = descriptions.length > 0
+                ? descriptions.map(desc => `<p class="mb-2">${desc}</p>`).join('')
+                : '<p class="mb-2 text-gray-400">No description available.</p>';
+            
             // Source rendering
             let sourceHtml = '';
             if (result.source_info && result.source_info.startsWith('http')) {
-                sourceHtml = `<span class=\"font-semibold\">${sourceLabel[userLang]}</span> <a href=\"${result.source_info}\" target=\"_blank\" class=\"underline text-accent-color\">${result.source_info}</a>`;
+                sourceHtml = `<span class="font-semibold">${sourceLabel[userLang]}</span> <a href="${result.source_info}" target="_blank" class="underline text-accent-color">${result.source_info}</a>`;
             } else if (result.source_info && result.source_info !== 'N/A') {
-                sourceHtml = `<span class=\"font-semibold\">${sourceLabel[userLang]}</span> ${result.source_info}`;
+                sourceHtml = `<span class="font-semibold">${sourceLabel[userLang]}</span> ${result.source_info}`;
             } else {
-                sourceHtml = `<span class=\"font-semibold\">${sourceLabel[userLang]}</span> ${noSourceLabel[userLang]}`;
+                sourceHtml = `<span class="font-semibold">${sourceLabel[userLang]}</span> ${noSourceLabel[userLang]}`;
             }
+            
             let suggestionsHtml = '';
             if (result.suggestions && result.suggestions.length > 0) {
-                // Render static suggestions (first 4) as links to static pages, 5th as AI suggestion
                 suggestionsHtml = `
-                    <div class=\"mt-4\">
-                        <h4 class=\"font-semibold mb-1\">${suggestionsLabel[userLang]}</h4>
-                        <ul class=\"list-disc list-inside\">
-                            ${result.suggestions.slice(0, 4).map(s => `<li><a href=\"/${s.category}.html?keyword=${encodeURIComponent(document.getElementById('searchInput').value)}\" class=\"text-accent-color hover:underline\">${s.text}</a></li>`).join('')}
-                            <li><a href=\"#\" class=\"text-accent-color hover:underline\" onclick=\"fillSuggestion('${result.suggestions[4].text.replace(/'/g, "\\'")}')\">${result.suggestions[4].text}</a></li>
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-1">${suggestionsLabel[userLang]}</h4>
+                        <ul class="list-disc list-inside">
+                            ${result.suggestions.map(s => `<li><a href="/${s.category}.html?keyword=${encodeURIComponent(document.getElementById('searchInput').value)}" class="text-accent-color hover:underline">${s.text}</a></li>`).join('')}
                         </ul>
                     </div>
                 `;
             }
+            
             let actionsHtml = '';
             if (result.actions && result.actions.length > 0) {
                 actionsHtml = `
-                    <div class=\"flex space-x-4 mt-4\">
-                        ${result.actions.map(action => `
-                            <button onclick=\"startChat('${action.query}')\"
-                                    class=\"btn-primary px-4 py-2 rounded-lg\">
-                                ${action.label || 'Ask AI Assistant'}
-                            </button>
-                        `).join('')}
+                    <div class="flex space-x-4 mt-4">
+                        <a href="http://localhost:8000/assistant?q=${encodeURIComponent(result.name)}" 
+                           class="inline-flex items-center px-4 py-2 rounded-lg bg-accent-color text-primary-color font-semibold hover:bg-opacity-90 transition-colors duration-200 assistant-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                            </svg>
+                            ${assistantLabel[userLang]}
+                        </a>
                     </div>
                 `;
             }
+            
             card.innerHTML = `
-                <h3 class=\"text-xl font-semibold mb-2\">${result.name || 'No name'}</h3>
-                <div class=\"mb-2\">${descriptionHtml}</div>
-                <p class=\"text-gray-400 mb-2\">${sourceHtml}</p>
+                <h3 class="text-xl font-semibold mb-2">${result.name || 'No name'}</h3>
+                <div class="mb-2">${descriptionHtml}</div>
+                <p class="text-gray-400 mb-2">${sourceHtml}</p>
+                ${result.action_boxes && result.action_boxes.length > 0 ? `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+                        ${result.action_boxes.map(box => `
+                            <div class="p-4 border rounded-lg shadow-sm hover:shadow-md cursor-pointer transition-shadow"
+                                 onclick="${box.type === 'external' ? `window.open('${box.url}', '_blank')` : `performSearch('${box.query}')`}">
+                                ${box.title}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
                 ${suggestionsHtml}
-                ${actionsHtml}
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    ${actionsHtml}
+                </div>
             `;
+            
+            console.log('Generated card HTML:', card.innerHTML);
             resultsDiv.appendChild(card);
         });
-        updateThemeUI(); // update theme for new results
+        
+        // Force theme update for new results
+        updateThemeUI();
     }
     function fillSuggestion(suggestion) {
         performSearch(suggestion); // Only fills, doesn't search

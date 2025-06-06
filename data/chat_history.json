@@ -1,0 +1,175 @@
+{
+  "chats": [
+    {
+      "timestamp": "2025-06-06T18:21:43.954225",
+      "message": "hej",
+      "response": {
+        "response": "Hej! Hvordan kan jeg hjælpe dig i dag?",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:21:52.798452",
+      "message": "gdzie sa zapisywane nasze rozmowy?",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:22:19.320605",
+      "message": "gdzie znajde historie rozmow",
+      "response": {
+        "response": "Historię rozmów zwykle można znaleźć w aplikacjach do komunikacji, takich jak Facebook Messenger, WhatsApp, Discord, czy Skype. W każdej z tych aplikacji należy przejrzeć ustawienia lub opcje, które mogą umożliwić dostęp do historii rozmów. Jeśli chcesz uzyskać szczegółową informację dla konkretnego programu, proszę podaj nazwę aplikacji, a ja postaram się pomóc.",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:22:43.652729",
+      "message": "chodzi mi o tego asystenta",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:22:52.322963",
+      "message": "chodzi o tego asystenta",
+      "response": {
+        "response": "Tak, jestem asystentem, który służy pomocą w udzielaniu informacji na temat produktów i instrukcji obsługi. W czym mogę pomóc?",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:23:32.198923",
+      "message": "ok",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:23:40.558393",
+      "message": "ok",
+      "response": {
+        "response": "How may I assist you today?",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:32:45.889904",
+      "message": "hej",
+      "response": {
+        "response": "Hello! How can I assist you today?",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:32:55.429907",
+      "message": "dobrze  u cibie?",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:33:02.178559",
+      "message": "dobrze a u ciebie?",
+      "response": {
+        "response": "Hello! How can I assist you today?",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T18:33:12.842826",
+      "message": "hej",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "pl"
+    },
+    {
+      "timestamp": "2025-06-06T18:33:16.368190",
+      "message": "hej",
+      "response": {
+        "response": "Witaj! W czym mogę pomóc?",
+        "steps": []
+      },
+      "language": "pl"
+    },
+    {
+      "timestamp": "2025-06-06T19:10:11.390404",
+      "message": "ggsfds",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T19:10:14.619006",
+      "message": "d",
+      "response": {
+        "response": "How can I assist you today?",
+        "steps": []
+      },
+      "language": "en"
+    },
+    {
+      "timestamp": "2025-06-06T19:40:11.466403",
+      "message": "siema chat",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "pl"
+    },
+    {
+      "timestamp": "2025-06-06T19:40:17.363046",
+      "message": "siema chat",
+      "response": {
+        "response": "Witaj! W czym mogę pomóc? Jeśli masz pytania dotyczące produktów lub instrukcji obsługi, chętnie ci pomogę.",
+        "steps": []
+      },
+      "language": "pl"
+    },
+    {
+      "timestamp": "2025-06-06T19:40:21.960799",
+      "message": "czemu",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "pl"
+    },
+    {
+      "timestamp": "2025-06-06T19:40:30.220330",
+      "message": "nie dziala pierwsze zapytanie",
+      "response": {
+        "response": "Przepraszam za problem z pierwszym zapytaniem. Jak mogę Ci dzisiaj pomóc?",
+        "steps": []
+      },
+      "language": "pl"
+    },
+    {
+      "timestamp": "2025-06-06T19:52:07.801392",
+      "message": "polski]\\",
+      "response": {
+        "error": "Event loop is closed",
+        "response": "Sorry, I encountered an error while processing your request."
+      },
+      "language": "pl"
+    }
+  ]
+}

@@ -1,4 +1,163 @@
-# Chaysh Project Rules (Updated June 2025)
+# Chaysh Project Rules (Updated March 2024)
+
+## Core Architecture
+
+### 1. AI Integration
+- **OpenRouter API**: Primary AI engine for all responses
+- **Response Format**: Standardized JSON structure for all AI responses:
+  ```json
+  {
+    "basic_info": "Brief overview (max 100 chars)",
+    "detailed_info": "Technical details (max 200 chars)",
+    "product_info": "Specific features (max 200 chars)",
+    "summary": "Concise conclusion (max 100 chars)"
+  }
+  ```
+
+### 2. Language Support
+- **Bilingual System**: Full support for English (en) and Polish (pl)
+- **Language Detection**: Based on user's browser settings
+- **Translation Rules**:
+  - All UI elements are translated
+  - AI responses are generated in the correct language
+  - Suggestions are language-specific
+  - Error messages are localized
+
+### 3. Response Structure
+- **Standard Fields**:
+  ```json
+  {
+    "name": "query",
+    "description": [
+      "basic_info",
+      "detailed_info",
+      "product_info",
+      "summary"
+    ],
+    "source_info": "source information",
+    "suggestions": [
+      {"text": "suggestion text", "category": "category"},
+      ...
+    ],
+    "actions": [
+      {"type": "chat", "label": "Chaysh Assistant", "query": "query"}
+    ]
+  }
+  ```
+
+### 4. Error Handling
+- **API Errors**:
+  - Invalid API key
+  - Network issues
+  - Rate limiting
+  - Invalid responses
+- **Response Processing**:
+  - JSON validation
+  - Field validation
+  - Fallback responses
+  - Error logging
+
+## Implementation Details
+
+### 1. Core Files
+- `src/core/crawler.py`: OpenRouter integration and response processing
+- `src/core/assistant.py`: AI response handling and formatting
+- `src/core/config.py`: Configuration and environment settings
+- `src/templates/home.html`: Frontend implementation
+
+### 2. API Integration
+- **OpenRouter Configuration**:
+  - API key in `.env` file
+  - Environment variable: `OPENROUTER_API_KEY`
+  - Model: `anthropic/claude-3-opus-20240229`
+  - Temperature: 0.7
+  - Max tokens: 1000
+
+### 3. Response Processing
+- **Character Limits**:
+  - Basic info: 100 chars
+  - Detailed info: 200 chars
+  - Product info: 200 chars
+  - Summary: 100 chars
+- **Validation Rules**:
+  - All fields must be strings
+  - No HTML or markdown
+  - No special characters
+  - Proper JSON formatting
+
+### 4. Suggestions System
+- **Static Suggestions**:
+  - 4 suggestions per response
+  - Categories: help, manual, model_search, opinions
+  - Language-specific text
+  - Context-aware formatting
+
+## Development Rules
+
+### 1. Code Standards
+- Use type hints
+- Implement error handling
+- Add logging statements
+- Follow PEP 8 style guide
+
+### 2. Testing Requirements
+- Test API integration
+- Verify language switching
+- Check response format
+- Validate error handling
+
+### 3. Documentation
+- Update przypominajka.md after major changes
+- Document API changes
+- Keep response format documentation current
+- Log all error cases
+
+## Deployment
+
+### 1. Environment Setup
+- Python 3.11.7
+- Required packages in requirements.txt
+- Environment variables in .env
+- Logging configuration
+
+### 2. Server Configuration
+- Uvicorn with debug mode
+- Host: 0.0.0.0
+- Port: 8000
+- Log level: debug
+
+## Backup and Recovery
+
+### 1. Critical Files
+- `src/core/crawler.py`
+- `src/core/assistant.py`
+- `src/core/config.py`
+- `src/templates/home.html`
+- `.env`
+
+### 2. Recovery Process
+1. Restore core files
+2. Verify API key
+3. Test language switching
+4. Validate response format
+
+## Future Development
+
+### 1. Planned Features
+- Enhanced error recovery
+- Additional language support
+- Improved response formatting
+- Advanced suggestion logic
+
+### 2. Maintenance Tasks
+- Regular API key updates
+- Log rotation
+- Performance monitoring
+- Error tracking
+
+---
+
+**Note**: This document is the source of truth for the project's implementation. All changes must be reflected here and in przypominajka.md.
 
 ## Search & Result Logic
 
@@ -223,4 +382,15 @@ Local Setup Instructions:
 5. Access at: http://127.0.0.1:8000 
 
 12. Consensus Aggregation Approach (2024-05)
-Chaysh now searches 3 different links for each query, extracts product description, rating, and price, and uses OpenRouter to generate a single neutral summary that reflects the consensus of all 3 sources. Only one result is returned, with links to all 3 sources. This reduces API usage and improves reliability. 
+Chaysh now searches 3 different links for each query, extracts product description, rating, and price, and uses OpenRouter to generate a single neutral summary that reflects the consensus of all 3 sources. Only one result is returned, with links to all 3 sources. This reduces API usage and improves reliability.
+
+### AI Assistant Progress (May 2024)
+- Fully integrated OpenRouter API for all assistant responses.
+- Bilingual support (English/Polish) for both UI and AI answers.
+- Standardized JSON response format enforced and validated.
+- Robust error handling for API/network issues and malformed responses.
+- Assistant UI is modern, Tailwind-based, and supports both light and dark themes.
+- Language switching is persistent and respected across all assistant interactions.
+- All assistant actions and suggestions are language-aware and contextually relevant.
+- No legacy/manual scraping logic remains; all results are AI-driven.
+- Ongoing: UI polish for light/dark mode separation in chat area. 

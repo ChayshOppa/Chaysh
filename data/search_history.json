@@ -1,0 +1,215 @@
+{
+  "searches": [
+    {
+      "timestamp": "2025-06-06T18:49:47.903913",
+      "query": "iphonre",
+      "language": "en",
+      "results_count": 1,
+      "results": [
+        {
+          "name": "iphonre",
+          "description": [
+            "Typo: Correct spelling is 'iPhone'",
+            "iPhone is a popular line of smartphones designed and marketed by Apple Inc.",
+            "Various models available with different features, prices vary based on model and storage capacity.",
+            "iPhone is a well-known line of smartphones by Apple Inc. with various models offering different features and price points."
+          ],
+          "source_info": "AI-generated information based on available data",
+          "action_boxes": [
+            {
+              "title": "Current Model",
+              "type": "info",
+              "message": "You are viewing a specific model"
+            },
+            {
+              "title": "User Opinions",
+              "type": "placeholder",
+              "message": "No opinions available yet"
+            },
+            {
+              "title": "Manuals & Tutorials",
+              "type": "placeholder",
+              "message": "No manuals available yet"
+            }
+          ],
+          "suggestions": [
+            {
+              "text": "Having trouble with 'iphonre'? Some help would be needed.",
+              "category": "help"
+            },
+            {
+              "text": "Wondering what exactly 'iphonre' is?",
+              "category": "manual"
+            },
+            {
+              "text": "Not sure what is exact name of 'iphonre'?",
+              "category": "model_search"
+            },
+            {
+              "text": "Let's see what others think about 'iphonre'.",
+              "category": "opinions"
+            }
+          ],
+          "actions": [
+            {
+              "type": "chat",
+              "label": "Chaysh Assistant",
+              "query": "iphonre"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "timestamp": "2025-06-06T19:34:59.402790",
+      "query": "kosiarki",
+      "language": "en",
+      "results_count": 1,
+      "results": [
+        {
+          "name": "kosiarki",
+          "description": [
+            "Gardening equipment",
+            "A 'kosiarki' is a type of lawn mower used for cutting grass in gardens or yards.",
+            "Various models available, prices start from $100. Users recommend for small to medium-sized lawns.",
+            "A 'kosiarki' is a gardening tool used for cutting grass in gardens or yards. Prices start from $100, suitable for small to medium-sized lawns."
+          ],
+          "source_info": "AI-generated information based on available data",
+          "action_boxes": [
+            {
+              "title": "Current Model",
+              "type": "info",
+              "message": "You are viewing a specific model"
+            },
+            {
+              "title": "User Opinions",
+              "type": "opinions",
+              "opinions": [
+                {
+                  "text": "Efficient and easy to use.",
+                  "rating": "positive"
+                }
+              ]
+            },
+            {
+              "title": "Manuals & Tutorials",
+              "type": "manuals",
+              "manuals": [
+                {
+                  "title": "Kosiarki User Manual",
+                  "type": "manual",
+                  "url": "placeholder_url"
+                }
+              ]
+            }
+          ],
+          "suggestions": [
+            {
+              "text": "Having trouble with 'kosiarki'? Some help would be needed.",
+              "category": "help"
+            },
+            {
+              "text": "Wondering what exactly 'kosiarki' is?",
+              "category": "manual"
+            },
+            {
+              "text": "Not sure what is exact name of 'kosiarki'?",
+              "category": "model_search"
+            },
+            {
+              "text": "Let's see what others think about 'kosiarki'.",
+              "category": "opinions"
+            }
+          ],
+          "actions": [
+            {
+              "type": "chat",
+              "label": "Chaysh Assistant",
+              "query": "kosiarki"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "timestamp": "2025-06-06T19:35:18.426146",
+      "query": "kosiarki",
+      "language": "pl",
+      "results_count": 1,
+      "results": [
+        {
+          "name": "kosiarki",
+          "description": [
+            "Kosiarki - urządzenia ogrodowe",
+            "Kosiarki to narzędzia służące do koszenia trawy. Dostępne są różne rodzaje: spalinowe, elektryczne, akumulatorowe.",
+            "Ceny kosiarek zależą od rodzaju i producenta. Opinie użytkowników często podkreślają wygodę obsługi i jakość skoszonej trawy.",
+            "Kosiarki to narzędzia ogrodowe do koszenia trawy. Dostępne w różnych rodzajach i cenach, cechują się wygodą obsługi i skutecznym działaniem."
+          ],
+          "source_info": "Informacje wygenerowane przez AI na podstawie dostępnych danych",
+          "action_boxes": [
+            {
+              "title": "Aktualny Model",
+              "type": "info",
+              "message": "Przeglądasz konkretny model"
+            },
+            {
+              "title": "Opinie Użytkowników",
+              "type": "opinions",
+              "opinions": [
+                {
+                  "text": "Bardzo wygodna w użyciu, polecam!",
+                  "rating": "positive"
+                },
+                {
+                  "text": "Słaba jakość wykonania, nie warto tej ceny.",
+                  "rating": "negative"
+                }
+              ]
+            },
+            {
+              "title": "Instrukcje i Poradniki",
+              "type": "manuals",
+              "manuals": [
+                {
+                  "title": "Podstawowy poradnik obsługi kosiarki",
+                  "type": "manual",
+                  "url": "placeholder_url"
+                },
+                {
+                  "title": "Jak właściwie regulować wysokość koszenia?",
+                  "type": "tutorial",
+                  "url": "placeholder_url"
+                }
+              ]
+            }
+          ],
+          "suggestions": [
+            {
+              "text": "Masz problem z 'kosiarki'? Potrzebna pomoc.",
+              "category": "help"
+            },
+            {
+              "text": "Zastanawiasz się czym dokładnie jest 'kosiarki'?",
+              "category": "manual"
+            },
+            {
+              "text": "Nie jesteś pewien dokładnej nazwy 'kosiarki'?",
+              "category": "model_search"
+            },
+            {
+              "text": "Zobaczmy co inni myślą o 'kosiarki'.",
+              "category": "opinions"
+            }
+          ],
+          "actions": [
+            {
+              "type": "chat",
+              "label": "Chaysh Assistant",
+              "query": "kosiarki"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
